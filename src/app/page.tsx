@@ -10,6 +10,14 @@ type ProjectForm = {
   status: ProjectStatus;
 };
 
+type ProjectsResponse = {
+  projects?: Project[];
+};
+
+type ErrorResponse = {
+  error?: string;
+};
+
 const INITIAL_FORM: ProjectForm = {
   name: "",
   description: "",
@@ -52,7 +60,7 @@ export default function Home() {
     try {
       setLoading(true);
       const response = await fetch("/api/projects");
-      const data = await response.json();
+      const data = (await response.json()) as ProjectsResponse;
       setProjects(data.projects ?? []);
     } finally {
       setLoading(false);
@@ -96,7 +104,7 @@ export default function Home() {
         body: JSON.stringify(form),
       });
 
-      const payload = await response.json();
+      const payload = (await response.json()) as ErrorResponse;
       if (!response.ok) {
         setErrorMessage(payload.error ?? "Unable to save project");
         return;
@@ -117,7 +125,7 @@ export default function Home() {
         "x-admin-key": adminKey,
       },
     });
-    const payload = await response.json();
+    const payload = (await response.json()) as ErrorResponse;
     if (!response.ok) {
       setErrorMessage(payload.error ?? "Unable to delete project");
       return;
