@@ -1,0 +1,26 @@
+[
+  {
+    "id": "sample-project-1",
+    "name": "Personal Portfolio v2",
+    "description": "Redesigning personal profile and case studies section.",
+    "progress": 65,
+    "status": "in_progress",
+    "updatedAt": "2026-04-06T00:00:00.000Z"
+  },
+  {
+    "id": "sample-project-2",
+    "name": "Habit Tracker API",
+    "description": "Building a tiny API for tracking daily writing habits.",
+    "progress": 35,
+    "status": "planning",
+    "updatedAt": "2026-04-06T00:00:00.000Z"
+  },
+  {
+    "id": "cdea701c-c593-4a16-9d33-d66214a48086",
+    "name": "test",
+    "description": "this is a test",
+    "progress": 0,
+    "status": "in_progress",
+    "updatedAt": "2026-04-06T12:37:04.229Z"
+  }
+]
