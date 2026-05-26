@@ -1,0 +1,64 @@
+[
+  {
+    "id": "proj-1",
+    "name": "ProjectSpace Tracker",
+    "description": "Building a premium, highly interactive personal dashboard to track project developments and milestones.",
+    "status": "Active",
+    "createdAt": "2026-05-26",
+    "activities": [
+      {
+        "id": "act-1",
+        "date": "2026-05-26",
+        "description": "Designed glassmorphic card layouts and configured dark theme."
+      },
+      {
+        "id": "act-2",
+        "date": "2026-05-26",
+        "description": "Created implementation plan and initialized the task checklist."
+      },
+      {
+        "id": "act-3",
+        "date": "2026-05-24",
+        "description": "Set up standard compatibility flags for Next.js on Cloudflare Workers."
+      }
+    ]
+  },
+  {
+    "id": "proj-2",
+    "name": "Cloudflare Worker Pipeline",
+    "description": "Configuring wrangler.jsonc, OpenNext, and github actions for automated deployments.",
+    "status": "Planning",
+    "createdAt": "2026-05-25",
+    "activities": [
+      {
+        "id": "act-1779797485731",
+        "date": "2026-05-26",
+        "description": "Configured automated workflow tests."
+      },
+      {
+        "id": "act-4",
+        "date": "2026-05-25",
+        "description": "Completed wrangler.jsonc setup and compatibility flag mapping."
+      }
+    ]
+  },
+  {
+    "id": "proj-3",
+    "name": "Personal AI Coding Partner",
+    "description": "Pair programming workflow integration with Gemini-powered agent capabilities.",
+    "status": "Completed",
+    "createdAt": "2026-05-10",
+    "activities": [
+      {
+        "id": "act-5",
+        "date": "2026-05-20",
+        "description": "Deployed custom dev agent with persistent state capabilities."
+      },
+      {
+        "id": "act-6",
+        "date": "2026-05-15",
+        "description": "Configured custom system commands and workspace structures."
+      }
+    ]
+  }
+]
