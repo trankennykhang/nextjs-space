@@ -1,5 +1,19 @@
 [
   {
+    "id": "proj-1779797587197",
+    "name": "Mobile App Client",
+    "description": "React Native app for client tracking.",
+    "status": "Planning",
+    "createdAt": "2026-05-26",
+    "activities": [
+      {
+        "id": "act-1779797587197",
+        "date": "2026-05-26",
+        "description": "Project initialized."
+      }
+    ]
+  },
+  {
     "id": "proj-1",
     "name": "ProjectSpace Tracker",
     "description": "Building a premium, highly interactive personal dashboard to track project developments and milestones.",

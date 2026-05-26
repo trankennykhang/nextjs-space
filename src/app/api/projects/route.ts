@@ -39,7 +39,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { data } = await request.json();
+    const body = (await request.json()) as { data?: unknown };
+    const data = body.data;
     if (!Array.isArray(data)) {
       return NextResponse.json({ error: "Invalid data format. Expected an array of projects." }, { status: 400 });
     }

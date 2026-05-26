@@ -44,7 +44,7 @@ export default function Home() {
       try {
         setIsLoading(true);
         const res = await fetch("/api/projects");
-        const json = await res.json();
+        const json = (await res.json()) as { data?: Project[]; source?: string; error?: string };
         
         // Check if there is already a saved state in localStorage
         const localSaved = localStorage.getItem("projectspace_data");
@@ -96,7 +96,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data: updatedProjects }),
       });
-      const json = await res.json();
+      const json = (await res.json()) as { success?: boolean; error?: string };
       if (json.success) {
         setSyncStatus("synced");
       } else {
