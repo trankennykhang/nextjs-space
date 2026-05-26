@@ -54,23 +54,31 @@ export default function Home() {
         const res = await fetch("/api/projects");
         const json = (await res.json()) as { data?: Project[]; source?: string; error?: string };
         
-        // Check if there is already a saved state in localStorage
-        const localSaved = localStorage.getItem("projectspace_data");
-        if (localSaved) {
-          const parsedLocal = JSON.parse(localSaved);
-          // If local storage has different or newer data, use it, otherwise sync from API
-          // For safety in this personal app, if both exist, we merge or default to localStorage
-          setProjects(parsedLocal);
-          setSyncStatus("local-only");
-          if (parsedLocal.length > 0) {
-            setSelectedProjectId(parsedLocal[0].id);
-          }
-        } else if (json.data) {
+        // 1. If we successfully retrieved data from KV or local filesystem, always use it as source of truth!
+        if (json.data && (json.source === "kv" || json.source === "fs")) {
           setProjects(json.data);
           localStorage.setItem("projectspace_data", JSON.stringify(json.data));
-          setSyncStatus(json.source === "fs" ? "synced" : "local-only");
+          setSyncStatus("synced");
           if (json.data.length > 0) {
             setSelectedProjectId(json.data[0].id);
+          }
+        } 
+        // 2. Otherwise (offline/server error/fallback source), fall back to browser localStorage
+        else {
+          const localSaved = localStorage.getItem("projectspace_data");
+          if (localSaved) {
+            const parsedLocal = JSON.parse(localSaved);
+            setProjects(parsedLocal);
+            setSyncStatus("local-only");
+            if (parsedLocal.length > 0) {
+              setSelectedProjectId(parsedLocal[0].id);
+            }
+          } else if (json.data) {
+            setProjects(json.data);
+            setSyncStatus("local-only");
+            if (json.data.length > 0) {
+              setSelectedProjectId(json.data[0].id);
+            }
           }
         }
       } catch (error) {
