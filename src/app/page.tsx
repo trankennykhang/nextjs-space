@@ -34,6 +34,12 @@ export default function Home() {
   const [newProjLocation, setNewProjLocation] = useState("");
   const [newProjStatus, setNewProjStatus] = useState<Project["status"]>("Active");
 
+  // Form states for updating an existing project
+  const [showUpdateProjectModal, setShowUpdateProjectModal] = useState(false);
+  const [updateProjName, setUpdateProjName] = useState("");
+  const [updateProjDesc, setUpdateProjDesc] = useState("");
+  const [updateProjLocation, setUpdateProjLocation] = useState("");
+
   // Form states for logging an activity
   const [newActivityDesc, setNewActivityDesc] = useState("");
   const [newActivityDate, setNewActivityDate] = useState(
@@ -141,6 +147,36 @@ export default function Home() {
     setNewProjLocation("");
     setNewProjStatus("Active");
     setShowAddProjectModal(false);
+  };
+
+  // Open update project modal handler
+  const openUpdateModal = () => {
+    if (!activeProject) return;
+    setUpdateProjName(activeProject.name);
+    setUpdateProjDesc(activeProject.description);
+    setUpdateProjLocation(activeProject.location || "");
+    setShowUpdateProjectModal(true);
+  };
+
+  // Update existing project handler
+  const handleUpdateProject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeProject || !updateProjName.trim()) return;
+
+    const updated = projects.map((p) => {
+      if (p.id === activeProject.id) {
+        return {
+          ...p,
+          name: updateProjName.trim(),
+          description: updateProjDesc.trim(),
+          location: updateProjLocation.trim() || "Remote",
+        };
+      }
+      return p;
+    });
+
+    saveData(updated);
+    setShowUpdateProjectModal(false);
   };
 
   // Add new activity log handler
@@ -405,8 +441,8 @@ export default function Home() {
                     )}
 
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className={`text-sm font-semibold transition-colors truncate ${isActive ? "text-indigo-300" : "text-zinc-200 group-hover:text-zinc-100"}`}>
-                        {p.name}
+                      <h3 className={`text-sm font-semibold transition-colors truncate ${isActive ? "text-indigo-300" : "text-zinc-200 group-hover:text-zinc-100"}`} title={`${p.name} - ${p.location}`}>
+                        {p.name} - {p.location || "Remote"}
                       </h3>
                       
                       {/* Status indicator dot */}
@@ -472,7 +508,7 @@ export default function Home() {
                     </div>
                     
                     <h2 className="text-2xl font-extrabold text-zinc-100 tracking-tight">
-                      {activeProject.name}
+                      {activeProject.name} - {activeProject.location || "Remote"}
                     </h2>
                   </div>
 
@@ -496,6 +532,17 @@ export default function Home() {
                         <option value="Completed">Completed</option>
                       </select>
                     </div>
+
+                    {/* Edit button */}
+                    <button
+                      onClick={openUpdateModal}
+                      className="p-1.5 rounded-xl border border-zinc-900 bg-zinc-950 text-zinc-500 hover:text-indigo-400 hover:border-indigo-900/30 hover:bg-indigo-500/5 transition-all"
+                      title="Update Project Details"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
 
                     {/* Delete button */}
                     <button
@@ -709,6 +756,82 @@ export default function Home() {
                   className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-sm font-bold shadow-lg shadow-indigo-500/10 active:scale-[0.98] transition-all"
                 >
                   Create Project
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modern Modal / Sheet to Update an Existing Project */}
+      {showUpdateProjectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/20">
+              <h3 className="text-base font-bold text-zinc-100">Update Project Details</h3>
+              <button
+                onClick={() => setShowUpdateProjectModal(false)}
+                className="text-zinc-400 hover:text-zinc-200"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateProject} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  Project Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Portfolio v2"
+                  value={updateProjName}
+                  onChange={(e) => setUpdateProjName(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500/50 rounded-xl py-2 px-3 text-sm text-zinc-100 outline-none transition-all"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  Description
+                </label>
+                <textarea
+                  placeholder="Briefly describe what you're building..."
+                  value={updateProjDesc}
+                  onChange={(e) => setUpdateProjDesc(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500/50 rounded-xl py-2 px-3 text-sm text-zinc-100 min-h-[80px] outline-none transition-all resize-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Remote, Tokyo Office, Local Dev"
+                  value={updateProjLocation}
+                  onChange={(e) => setUpdateProjLocation(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500/50 rounded-xl py-2 px-3 text-sm text-zinc-100 outline-none transition-all"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-zinc-800 flex items-center justify-end gap-3 bg-zinc-950/20 -mx-6 -mb-6 p-4">
+                <button
+                  type="button"
+                  onClick={() => setShowUpdateProjectModal(false)}
+                  className="px-4 py-2 rounded-xl border border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 text-sm font-medium transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-sm font-bold shadow-lg shadow-indigo-500/10 active:scale-[0.98] transition-all"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>
