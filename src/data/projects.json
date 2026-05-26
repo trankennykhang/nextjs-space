@@ -5,6 +5,7 @@
     "description": "React Native app for client tracking.",
     "status": "Planning",
     "createdAt": "2026-05-26",
+    "location": "Tokyo Office",
     "activities": [
       {
         "id": "act-1779797587197",
@@ -19,6 +20,7 @@
     "description": "Building a premium, highly interactive personal dashboard to track project developments and milestones.",
     "status": "Active",
     "createdAt": "2026-05-26",
+    "location": "Local Dev",
     "activities": [
       {
         "id": "act-1",
@@ -43,6 +45,7 @@
     "description": "Configuring wrangler.jsonc, OpenNext, and github actions for automated deployments.",
     "status": "Planning",
     "createdAt": "2026-05-25",
+    "location": "Cloudflare Edge",
     "activities": [
       {
         "id": "act-1779797485731",
@@ -62,6 +65,7 @@
     "description": "Pair programming workflow integration with Gemini-powered agent capabilities.",
     "status": "Completed",
     "createdAt": "2026-05-10",
+    "location": "Silicon Valley",
     "activities": [
       {
         "id": "act-5",

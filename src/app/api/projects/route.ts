@@ -12,6 +12,7 @@ const defaultProjects = [
     description: "Building a premium, highly interactive personal dashboard to track project developments and milestones.",
     status: "Active",
     createdAt: "2026-05-26",
+    location: "Local Dev",
     activities: [
       {
         id: "act-1",

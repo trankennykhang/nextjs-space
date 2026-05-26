@@ -24,3 +24,7 @@ body {
 	color: var(--foreground);
 	font-family: Arial, Helvetica, sans-serif;
 }
+
+html {
+	font-size: 19px; /* Scales up overall page font size by 18.75% */
+}

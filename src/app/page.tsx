@@ -14,6 +14,7 @@ interface Project {
   description: string;
   status: "Active" | "Planning" | "Completed" | "On Hold";
   createdAt: string;
+  location: string;
   activities: Activity[];
 }
 
@@ -30,6 +31,7 @@ export default function Home() {
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
   const [newProjName, setNewProjName] = useState("");
   const [newProjDesc, setNewProjDesc] = useState("");
+  const [newProjLocation, setNewProjLocation] = useState("");
   const [newProjStatus, setNewProjStatus] = useState<Project["status"]>("Active");
 
   // Form states for logging an activity
@@ -119,6 +121,7 @@ export default function Home() {
       description: newProjDesc.trim(),
       status: newProjStatus,
       createdAt: new Date().toISOString().split("T")[0],
+      location: newProjLocation.trim() || "Remote",
       activities: [
         {
           id: `act-${Date.now()}`,
@@ -135,6 +138,7 @@ export default function Home() {
     // Reset fields
     setNewProjName("");
     setNewProjDesc("");
+    setNewProjLocation("");
     setNewProjStatus("Active");
     setShowAddProjectModal(false);
   };
@@ -276,7 +280,7 @@ export default function Home() {
       {/* Main Layout Grid */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {/* Left Side: Sidebar list */}
-        <aside className="w-full md:w-96 border-r border-zinc-900 bg-zinc-950/40 flex flex-col shrink-0">
+        <aside className="w-full md:w-[450px] border-r border-zinc-900 bg-zinc-950/40 flex flex-col shrink-0">
           
           {/* Quick Statistics Banner */}
           <div className="p-4 grid grid-cols-4 gap-2 border-b border-zinc-900/60 bg-zinc-950/20">
@@ -449,10 +453,22 @@ export default function Home() {
                 
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500">
+                    <div className="flex items-center flex-wrap gap-2 text-xs font-semibold text-zinc-500">
                       <span>Created {activeProject.createdAt}</span>
                       <span>•</span>
                       <span className="text-indigo-400 font-mono">ID: {activeProject.id}</span>
+                      {activeProject.location && (
+                        <>
+                          <span>•</span>
+                          <span className="flex items-center gap-1 text-zinc-400">
+                            <svg className="w-3 h-3 text-zinc-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            {activeProject.location}
+                          </span>
+                        </>
+                      )}
                     </div>
                     
                     <h2 className="text-2xl font-extrabold text-zinc-100 tracking-tight">
@@ -642,6 +658,19 @@ export default function Home() {
                   value={newProjDesc}
                   onChange={(e) => setNewProjDesc(e.target.value)}
                   className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500/50 rounded-xl py-2 px-3 text-sm text-zinc-100 min-h-[80px] outline-none transition-all resize-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Remote, Tokyo Office, Local Dev"
+                  value={newProjLocation}
+                  onChange={(e) => setNewProjLocation(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500/50 rounded-xl py-2 px-3 text-sm text-zinc-100 outline-none transition-all"
                 />
               </div>
 
