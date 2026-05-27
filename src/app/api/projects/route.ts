@@ -15,7 +15,7 @@ interface ProjectsKV {
 const defaultProjects = [
   {
     id: "proj-1",
-    name: "ProjectSpace Tracker",
+    name: "Project Space Tracker",
     description: "Building a premium, highly interactive personal dashboard to track project developments and milestones.",
     status: "Active",
     createdAt: "2026-05-26",

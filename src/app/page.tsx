@@ -289,9 +289,9 @@ export default function Home() {
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-zinc-100 via-zinc-200 to-indigo-300">
-                ProjectSpace
+                Project Space
               </h1>
-              <p className="text-xs text-zinc-500 font-medium">Personal Development Lab</p>
+              <p className="text-xs text-zinc-500 font-medium">Developed by Antigravity, hosted by Cloudflare</p>
             </div>
           </div>
 
@@ -687,7 +687,7 @@ export default function Home() {
                 </svg>
               </div>
               <div className="text-center space-y-1">
-                <h3 className="text-sm font-bold text-zinc-300">Welcome to ProjectSpace</h3>
+                <h3 className="text-sm font-bold text-zinc-300">Welcome to Project Space</h3>
                 <p className="text-xs text-zinc-500 max-w-xs">
                   Create a new project or select an existing project from the sidebar to track its history.
                 </p>

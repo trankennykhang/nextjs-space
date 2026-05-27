@@ -12,6 +12,7 @@ function AdminDashboard() {
   const [isSaving, setIsSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Load config settings
   useEffect(() => {
@@ -75,6 +76,40 @@ function AdminDashboard() {
       setAllowedIp(clientIp);
       setMessage({ type: "success", text: "IP copied to input. Save settings to apply." });
       setTimeout(() => setMessage(null), 3000);
+    }
+  };
+
+  const handleExportData = async () => {
+    setIsExporting(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/projects");
+      if (!res.ok) {
+        throw new Error("Failed to load projects data");
+      }
+      const json = await res.json() as { data?: unknown[] };
+      const projects = json.data || [];
+
+      // Download file
+      const jsonString = JSON.stringify(projects, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `projects_backup_${new Date().toISOString().split("T")[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setMessage({ type: "success", text: "Database exported and downloaded successfully!" });
+      setTimeout(() => setMessage(null), 4000);
+    } catch (err) {
+      console.error("Export failed:", err);
+      setMessage({ type: "error", text: "Failed to export projects database." });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -260,6 +295,38 @@ function AdminDashboard() {
                   </button>
                 </div>
               </form>
+
+              {/* Data Operations */}
+              <div className="border-t border-zinc-800 pt-6 mt-2 space-y-4">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold text-zinc-300">
+                    Data Backups & Export
+                  </h3>
+                  <p className="text-xs text-zinc-500 leading-relaxed font-medium">
+                    Download a secure backup of all project records, status developments, and activity histories in raw JSON format.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleExportData}
+                  disabled={isExporting}
+                  className="w-full bg-zinc-950/70 border border-zinc-800 hover:bg-zinc-900 hover:text-white hover:border-zinc-700 text-zinc-300 font-bold py-2.5 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                >
+                  {isExporting ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-zinc-300 border-t-transparent rounded-full animate-spin"></span>
+                      Gathering records...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Export Projects Database (JSON)
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           )}
         </div>
