@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import SecurityWrapper from "@/components/SecurityWrapper";
 
 interface Activity {
   id: string;
@@ -265,61 +267,83 @@ export default function Home() {
   const completedCount = projects.filter((p) => p.status === "Completed").length;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Dynamic Header */}
-      <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <svg
-              className="w-5 h-5 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-              />
-            </svg>
+    <SecurityWrapper>
+      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+        {/* Dynamic Header */}
+        <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-zinc-100 via-zinc-200 to-indigo-300">
+                ProjectSpace
+              </h1>
+              <p className="text-xs text-zinc-500 font-medium">Personal Development Lab</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-zinc-100 via-zinc-200 to-indigo-300">
-              ProjectSpace
-            </h1>
-            <p className="text-xs text-zinc-500 font-medium">Personal Development Lab</p>
-          </div>
-        </div>
 
-        {/* Sync Status Badge */}
-        <div className="flex items-center gap-2">
-          {syncStatus === "synced" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Synced with JSON
-            </span>
-          )}
-          {syncStatus === "saving" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"></span>
-              Saving...
-            </span>
-          )}
-          {syncStatus === "local-only" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20" title="Changes are saved locally in the browser. Perfect for read-only serverless worker deployment.">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              Client Storage Active
-            </span>
-          )}
-          {syncStatus === "error" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span>
-              Connection Error
-            </span>
-          )}
-        </div>
-      </header>
+          {/* Sync Status Badge & Admin Settings */}
+          <div className="flex items-center gap-3">
+            {syncStatus === "synced" && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Synced with JSON
+              </span>
+            )}
+            {syncStatus === "saving" && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"></span>
+                Saving...
+              </span>
+            )}
+            {syncStatus === "local-only" && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20" title="Changes are saved locally in the browser. Perfect for read-only serverless worker deployment.">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                Client Storage Active
+              </span>
+            )}
+            {syncStatus === "error" && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span>
+                Connection Error
+              </span>
+            )}
+
+            {/* Admin/Security Configuration Link */}
+            <Link
+              href="/admin"
+              className="p-2 rounded-xl border border-zinc-900 bg-zinc-950 text-zinc-500 hover:text-indigo-400 hover:border-indigo-900/30 hover:bg-indigo-500/5 transition-all cursor-pointer"
+              title="Security Control Panel"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </Link>
+          </div>
+        </header>
 
       {/* Main Layout Grid */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
@@ -847,5 +871,6 @@ export default function Home() {
         </div>
       )}
     </div>
-  );
+  </SecurityWrapper>
+);
 }
