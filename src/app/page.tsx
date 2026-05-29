@@ -10,6 +10,18 @@ interface Activity {
   description: string;
 }
 
+interface Note {
+  id: string;
+  date: string;
+  content: string;
+}
+
+interface UpcomingTask {
+  id: string;
+  description: string;
+  createdAt: string;
+}
+
 interface Project {
   id: string;
   name: string;
@@ -18,6 +30,8 @@ interface Project {
   createdAt: string;
   location: string;
   activities: Activity[];
+  notes?: Note[];
+  upcomingTasks?: UpcomingTask[];
 }
 
 export default function Home() {
@@ -47,6 +61,17 @@ export default function Home() {
   const [newActivityDate, setNewActivityDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+
+  // Tab navigation state
+  const [activeTab, setActiveTab] = useState<"logs" | "notes" | "tasks">("logs");
+
+  // Form states for Notes
+  const [newNoteContent, setNewNoteContent] = useState("");
+
+  // Form states for Upcoming Tasks
+  const [newTaskDesc, setNewTaskDesc] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingTaskDesc, setEditingTaskDesc] = useState("");
 
   // Load projects from API & LocalStorage
   useEffect(() => {
@@ -145,6 +170,8 @@ export default function Home() {
           description: "Project initialized.",
         },
       ],
+      notes: [],
+      upcomingTasks: [],
     };
 
     const updated = [newProject, ...projects];
@@ -241,6 +268,116 @@ export default function Home() {
         return {
           ...p,
           activities: p.activities.filter((a) => a.id !== actId),
+        };
+      }
+      return p;
+    });
+    saveData(updated);
+  };
+
+  // Add Note handler
+  const handleAddNote = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProjectId || !newNoteContent.trim()) return;
+
+    const updated = projects.map((p) => {
+      if (p.id === selectedProjectId) {
+        const newNote: Note = {
+          id: `note-${Date.now()}`,
+          date: new Date().toISOString().split("T")[0],
+          content: newNoteContent.trim(),
+        };
+        const currentNotes = p.notes || [];
+        return {
+          ...p,
+          notes: [newNote, ...currentNotes], // Newest notes first
+        };
+      }
+      return p;
+    });
+
+    saveData(updated);
+    setNewNoteContent("");
+  };
+
+  // Delete Note handler
+  const handleDeleteNote = (projId: string, noteId: string) => {
+    const updated = projects.map((p) => {
+      if (p.id === projId) {
+        const currentNotes = p.notes || [];
+        return {
+          ...p,
+          notes: currentNotes.filter((n) => n.id !== noteId),
+        };
+      }
+      return p;
+    });
+    saveData(updated);
+  };
+
+  // Add Task handler
+  const handleAddTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProjectId || !newTaskDesc.trim()) return;
+
+    const updated = projects.map((p) => {
+      if (p.id === selectedProjectId) {
+        const newTask: UpcomingTask = {
+          id: `task-${Date.now()}`,
+          description: newTaskDesc.trim(),
+          createdAt: new Date().toISOString().split("T")[0],
+        };
+        const currentTasks = p.upcomingTasks || [];
+        return {
+          ...p,
+          upcomingTasks: [newTask, ...currentTasks],
+        };
+      }
+      return p;
+    });
+
+    saveData(updated);
+    setNewTaskDesc("");
+  };
+
+  // Edit/Update Task handler
+  const handleUpdateTaskDesc = (projId: string, taskId: string, newDesc: string) => {
+    if (!newDesc.trim()) return;
+    const updated = projects.map((p) => {
+      if (p.id === projId) {
+        const currentTasks = p.upcomingTasks || [];
+        return {
+          ...p,
+          upcomingTasks: currentTasks.map((t) =>
+            t.id === taskId ? { ...t, description: newDesc.trim() } : t
+          ),
+        };
+      }
+      return p;
+    });
+    saveData(updated);
+    setEditingTaskId(null);
+    setEditingTaskDesc("");
+  };
+
+  // Complete Task handler: removes from upcoming tasks, adds activity log
+  const handleCompleteTask = (projId: string, taskId: string) => {
+    const updated = projects.map((p) => {
+      if (p.id === projId) {
+        const currentTasks = p.upcomingTasks || [];
+        const taskToComplete = currentTasks.find((t) => t.id === taskId);
+        if (!taskToComplete) return p;
+
+        const newActivity: Activity = {
+          id: `act-${Date.now()}`,
+          date: new Date().toISOString().split("T")[0],
+          description: `Completed task: ${taskToComplete.description}`,
+        };
+
+        return {
+          ...p,
+          upcomingTasks: currentTasks.filter((t) => t.id !== taskId),
+          activities: [newActivity, ...p.activities],
         };
       }
       return p;
@@ -594,89 +731,332 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Logger widget */}
-              <div className="p-6 rounded-2xl border border-zinc-900 bg-zinc-900/10">
-                <h3 className="text-sm font-bold text-zinc-300 mb-4 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Log New Activity
-                </h3>
-
-                <form onSubmit={handleAddActivity} className="space-y-3">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="text"
-                      placeholder="What progress did you make today?"
-                      value={newActivityDesc}
-                      onChange={(e) => setNewActivityDesc(e.target.value)}
-                      className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-indigo-500/50 outline-none transition-all"
-                      required
-                    />
-                    
-                    <input
-                      type="date"
-                      value={newActivityDate}
-                      onChange={(e) => setNewActivityDate(e.target.value)}
-                      className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-zinc-300 outline-none focus:border-indigo-500/50 transition-all font-mono"
-                    />
-
-                    <button
-                      type="submit"
-                      className="bg-zinc-100 hover:bg-white text-zinc-950 font-bold px-5 py-2 rounded-xl text-sm transition-all active:scale-[0.98]"
-                    >
-                      Log Entry
-                    </button>
-                  </div>
-                </form>
+              {/* Sleek Tab Navigation Widget */}
+              <div className="flex border-b border-zinc-900 bg-zinc-950/20 p-1.5 rounded-xl gap-1">
+                {([
+                  { id: "logs", label: "Log Entry", icon: (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  ) },
+                  { id: "notes", label: "Notes", icon: (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828L17.586 4.586z" />
+                    </svg>
+                  ) },
+                  { id: "tasks", label: "Upcoming Tasks", icon: (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                  ) }
+                ] as const).map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                      activeTab === tab.id
+                        ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-inner shadow-indigo-500/5"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/40"
+                    }`}
+                  >
+                    {tab.icon}
+                    {tab.label}
+                    {tab.id === "tasks" && (activeProject.upcomingTasks || []).length > 0 && (
+                      <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-indigo-500 text-white font-bold">
+                        {(activeProject.upcomingTasks || []).length}
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
 
-              {/* Vertical Activity History Timeline */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-zinc-400 flex items-center gap-2 uppercase tracking-wider px-2">
-                  <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Activity History ({activeProject.activities.length})
-                </h3>
+              {activeTab === "logs" && (
+                <div className="space-y-6">
+                  {/* Logger widget */}
+                  <div className="p-6 rounded-2xl border border-zinc-900 bg-zinc-900/10">
+                    <h3 className="text-sm font-bold text-zinc-300 mb-4 flex items-center gap-2">
+                      <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Log New Activity
+                    </h3>
 
-                <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-zinc-900">
-                  {activeProject.activities.length === 0 ? (
-                    <div className="text-center py-8 text-zinc-600 text-xs font-medium">
-                      No activities logged yet. Use the logger above to write your first status update.
+                    <form onSubmit={handleAddActivity} className="space-y-3">
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <input
+                          type="text"
+                          placeholder="What progress did you make today?"
+                          value={newActivityDesc}
+                          onChange={(e) => setNewActivityDesc(e.target.value)}
+                          className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-indigo-500/50 outline-none transition-all"
+                          required
+                        />
+                        
+                        <input
+                          type="date"
+                          value={newActivityDate}
+                          onChange={(e) => setNewActivityDate(e.target.value)}
+                          className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-zinc-300 outline-none focus:border-indigo-500/50 transition-all font-mono"
+                        />
+
+                        <button
+                          type="submit"
+                          className="bg-zinc-100 hover:bg-white text-zinc-950 font-bold px-5 py-2 rounded-xl text-sm transition-all active:scale-[0.98] cursor-pointer"
+                        >
+                          Log Entry
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  {/* Vertical Activity History Timeline */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-zinc-400 flex items-center gap-2 uppercase tracking-wider px-2">
+                      <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Activity History ({activeProject.activities.length})
+                    </h3>
+
+                    <div className="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-zinc-900">
+                      {activeProject.activities.length === 0 ? (
+                        <div className="text-center py-8 text-zinc-600 text-xs font-medium">
+                          No activities logged yet. Use the logger above to write your first status update.
+                        </div>
+                      ) : (
+                        activeProject.activities.map((act) => (
+                          <div key={act.id} className="relative group/timeline flex flex-col gap-1.5">
+                            {/* Timeline Circle indicator */}
+                            <div className="absolute -left-[20px] top-1 w-3.5 h-3.5 rounded-full bg-zinc-950 border-2 border-indigo-500 group-hover/timeline:scale-125 transition-all"></div>
+                            
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-xs font-semibold text-indigo-400 font-mono">
+                                {act.date}
+                              </span>
+
+                              {/* Action - Delete Activity */}
+                              <button
+                                onClick={() => handleDeleteActivity(activeProject.id, act.id)}
+                                className="text-zinc-600 hover:text-rose-400 opacity-0 group-hover/timeline:opacity-100 transition-all text-xs cursor-pointer"
+                                title="Delete log entry"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+
+                            <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-900/10 text-zinc-300 text-xs leading-relaxed font-medium">
+                              {act.description}
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
-                  ) : (
-                    activeProject.activities.map((act) => (
-                      <div key={act.id} className="relative group/timeline flex flex-col gap-1.5">
-                        
-                        {/* Timeline Circle indicator */}
-                        <div className="absolute -left-[20px] top-1 w-3.5 h-3.5 rounded-full bg-zinc-950 border-2 border-indigo-500 group-hover/timeline:scale-125 transition-all"></div>
-                        
-                        <div className="flex items-center justify-between gap-4">
-                          <span className="text-xs font-semibold text-indigo-400 font-mono">
-                            {act.date}
-                          </span>
+                  </div>
+                </div>
+              )}
 
-                          {/* Action - Delete Activity */}
+              {activeTab === "notes" && (
+                <div className="space-y-6">
+                  {/* Note input widget */}
+                  <div className="p-6 rounded-2xl border border-zinc-900 bg-zinc-900/10">
+                    <h3 className="text-sm font-bold text-zinc-300 mb-4 flex items-center gap-2">
+                      <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828" />
+                      </svg>
+                      Add Project Note
+                    </h3>
+
+                    <form onSubmit={handleAddNote} className="space-y-3">
+                      <div className="flex flex-col gap-3">
+                        <textarea
+                          placeholder="Jot down a quick thought, reference note, or wiki detail..."
+                          value={newNoteContent}
+                          onChange={(e) => setNewNoteContent(e.target.value)}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:border-indigo-500/50 outline-none transition-all resize-none min-h-[80px]"
+                          required
+                        />
+                        <div className="flex justify-end">
                           <button
-                            onClick={() => handleDeleteActivity(activeProject.id, act.id)}
-                            className="text-zinc-600 hover:text-rose-400 opacity-0 group-hover/timeline:opacity-100 transition-all text-xs"
-                            title="Delete log entry"
+                            type="submit"
+                            className="bg-zinc-100 hover:bg-white text-zinc-950 font-bold px-5 py-2 rounded-xl text-sm transition-all active:scale-[0.98] cursor-pointer"
                           >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
+                            Save Note
                           </button>
                         </div>
-
-                        <div className="p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-900/10 text-zinc-300 text-xs leading-relaxed font-medium">
-                          {act.description}
-                        </div>
                       </div>
-                    ))
-                  )}
+                    </form>
+                  </div>
+
+                  {/* Notes List */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-zinc-400 flex items-center gap-2 uppercase tracking-wider px-2">
+                      <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Saved Notes ({(activeProject.notes || []).length})
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-4">
+                      {!(activeProject.notes && activeProject.notes.length > 0) ? (
+                        <div className="text-center py-8 text-zinc-600 text-xs font-medium border border-dashed border-zinc-900 rounded-2xl">
+                          No notes captured yet. Save your first reference note above.
+                        </div>
+                      ) : (
+                        activeProject.notes.map((note) => (
+                          <div key={note.id} className="p-4 rounded-xl border border-zinc-900/60 bg-zinc-900/10 flex flex-col gap-2 relative group hover:border-zinc-800 transition-all">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-indigo-400 font-mono">
+                                {note.date}
+                              </span>
+                              <button
+                                onClick={() => handleDeleteNote(activeProject.id, note.id)}
+                                className="text-zinc-600 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-rose-500/5 rounded cursor-pointer"
+                                title="Delete Note"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                            <p className="text-zinc-300 text-xs leading-relaxed whitespace-pre-wrap font-medium">
+                              {note.content}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {activeTab === "tasks" && (
+                <div className="space-y-6">
+                  {/* Add Task input widget */}
+                  <div className="p-6 rounded-2xl border border-zinc-900 bg-zinc-900/10">
+                    <h3 className="text-sm font-bold text-zinc-300 mb-4 flex items-center gap-2">
+                      <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add New Upcoming Task
+                    </h3>
+
+                    <form onSubmit={handleAddTask} className="flex gap-3">
+                      <input
+                        type="text"
+                        placeholder="What needs to be done next? (e.g. Set up Cloudflare KV caching)"
+                        value={newTaskDesc}
+                        onChange={(e) => setNewTaskDesc(e.target.value)}
+                        className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-indigo-500/50 outline-none transition-all"
+                        required
+                      />
+                      <button
+                        type="submit"
+                        className="bg-zinc-100 hover:bg-white text-zinc-950 font-bold px-5 py-2 rounded-xl text-sm transition-all active:scale-[0.98] cursor-pointer"
+                      >
+                        Add Task
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Tasks List */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-bold text-zinc-400 flex items-center gap-2 uppercase tracking-wider px-2">
+                      <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      Upcoming Tasks ({(activeProject.upcomingTasks || []).length})
+                    </h3>
+
+                    <div className="space-y-2.5">
+                      {!(activeProject.upcomingTasks && activeProject.upcomingTasks.length > 0) ? (
+                        <div className="text-center py-8 text-zinc-600 text-xs font-medium border border-dashed border-zinc-900 rounded-2xl">
+                          All caught up! No upcoming tasks. Add one to keep planning.
+                        </div>
+                      ) : (
+                        activeProject.upcomingTasks.map((task) => {
+                          const isEditing = editingTaskId === task.id;
+                          return (
+                            <div key={task.id} className="flex items-center gap-3 p-3.5 rounded-xl border border-zinc-900/60 bg-zinc-900/10 hover:border-zinc-800 transition-all group">
+                              
+                              {/* Complete Checkbox Button */}
+                              <button
+                                onClick={() => handleCompleteTask(activeProject.id, task.id)}
+                                className="w-5 h-5 rounded-full border border-zinc-700 hover:border-indigo-400 flex items-center justify-center shrink-0 hover:bg-indigo-500/10 transition-all group/chk cursor-pointer"
+                                title="Mark as Completed"
+                              >
+                                <svg className="w-3 h-3 text-transparent group-hover/chk:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </button>
+
+                              {/* Task Content / Inline Form */}
+                              <div className="flex-1 min-w-0">
+                                {isEditing ? (
+                                  <form
+                                    onSubmit={(e) => {
+                                      e.preventDefault();
+                                      handleUpdateTaskDesc(activeProject.id, task.id, editingTaskDesc);
+                                    }}
+                                    className="flex gap-2"
+                                  >
+                                    <input
+                                      type="text"
+                                      value={editingTaskDesc}
+                                      onChange={(e) => setEditingTaskDesc(e.target.value)}
+                                      className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1 text-sm text-zinc-100 outline-none focus:border-indigo-500/50"
+                                      required
+                                      autoFocus
+                                    />
+                                    <button
+                                      type="submit"
+                                      className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-lg transition-all cursor-pointer"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEditingTaskId(null);
+                                        setEditingTaskDesc("");
+                                      }}
+                                      className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold px-3 py-1 rounded-lg transition-all cursor-pointer"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </form>
+                                ) : (
+                                  <div className="flex items-center justify-between gap-3">
+                                    <span className="text-zinc-200 text-sm font-semibold truncate leading-relaxed">
+                                      {task.description}
+                                    </span>
+                                    <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
+                                      {/* Edit Pencil Button */}
+                                      <button
+                                        onClick={() => {
+                                          setEditingTaskId(task.id);
+                                          setEditingTaskDesc(task.description);
+                                        }}
+                                        className="text-zinc-500 hover:text-indigo-400 p-1 hover:bg-indigo-500/5 rounded cursor-pointer"
+                                        title="Edit task description"
+                                      >
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
           ) : (
