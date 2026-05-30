@@ -34,6 +34,17 @@ interface Project {
   upcomingTasks?: UpcomingTask[];
 }
 
+// Helper to format standard ISO date string (YYYY-MM-DD) to d-m-Y (e.g. 26-05-2026)
+const formatDateToDMY = (dateStr: string): string => {
+  if (!dateStr) return "";
+  const parts = dateStr.split("-");
+  if (parts.length === 3 && parts[0].length === 4) {
+    const [year, month, day] = parts;
+    return `${day}-${month}-${year}`;
+  }
+  return dateStr;
+};
+
 export default function Home() {
   // State variables
   const [projects, setProjects] = useState<Project[]>([]);
@@ -634,8 +645,8 @@ export default function Home() {
                       </span>
                       <span>
                         {p.activities[0]
-                          ? `Last updated: ${p.activities[0].date}`
-                          : `Created: ${p.createdAt}`}
+                          ? `Last updated: ${formatDateToDMY(p.activities[0].date)}`
+                          : `Created: ${formatDateToDMY(p.createdAt)}`}
                       </span>
                     </div>
                   </div>
@@ -659,7 +670,7 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center flex-wrap gap-2 text-xs font-semibold text-zinc-500">
-                      <span>Created {activeProject.createdAt}</span>
+                      <span>Created {formatDateToDMY(activeProject.createdAt)}</span>
                       <span>•</span>
                       <span className="text-indigo-400 font-mono">ID: {activeProject.id}</span>
                       {activeProject.location && (
@@ -831,7 +842,7 @@ export default function Home() {
                             
                             <div className="flex items-center justify-between gap-4">
                               <span className="text-xs font-semibold text-indigo-400 font-mono">
-                                {act.date}
+                                {formatDateToDMY(act.date)}
                               </span>
 
                               {/* Action - Delete Activity */}
@@ -908,7 +919,7 @@ export default function Home() {
                           <div key={note.id} className="p-4 rounded-xl border border-zinc-900/60 bg-zinc-900/10 flex flex-col gap-2 relative group hover:border-zinc-800 transition-all">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-bold text-indigo-400 font-mono">
-                                {note.date}
+                                {formatDateToDMY(note.date)}
                               </span>
                               <button
                                 onClick={() => handleDeleteNote(activeProject.id, note.id)}
